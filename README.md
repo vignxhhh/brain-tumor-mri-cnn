@@ -87,14 +87,27 @@ Green titles are correct predictions; red titles are wrong. Each title shows the
 ## ⚙️ How it works
 
 ```mermaid
-flowchart LR
-    A[("21,672 MRI images<br/>4 classes")] --> B["Group augmented copies<br/>with their original scan"]
-    B --> C{"Split by scan ID<br/>70 / 15 / 15"}
-    C --> D["OpenCV preprocessing<br/>crop · denoise · CLAHE · resize"]
-    D --> E["CNN<br/>4 conv blocks · 1.2M params"]
-    E --> F["Train<br/>early stopping · LR schedule"]
-    F --> G["Evaluate<br/>accuracy · F1 · confusion matrix"]
-    G --> H(["predict_image(path)"])
+flowchart TB
+    subgraph S1["① Data"]
+        direction LR
+        A[("21,672 MRI images<br/>4 classes")] --> B["Group the 6 augmented<br/>copies with each original"] --> C{"Split by scan ID<br/>70 / 15 / 15"}
+    end
+    subgraph S2["② OpenCV preprocessing"]
+        direction LR
+        D["Grayscale +<br/>denoise"] --> E["Find head contour<br/>+ crop"] --> F["CLAHE contrast<br/>+ resize 224×224"]
+    end
+    subgraph S3["③ CNN"]
+        direction LR
+        G["4 conv blocks<br/>1.2M parameters"] --> H["Train<br/>early stopping · LR schedule"] --> I["Evaluate<br/>94.0% on held-out scans"]
+    end
+    S1 --> S2 --> S3
+
+    classDef data fill:#1f6feb22,stroke:#1f6feb
+    classDef cv fill:#8957e522,stroke:#8957e5
+    classDef cnn fill:#2ea44f22,stroke:#2ea44f
+    class A,B,C data
+    class D,E,F cv
+    class G,H,I cnn
 ```
 
 | Stage | Details |
